@@ -23,6 +23,7 @@ function activate(context) {
 
     	if (editor) {
     	  const document = editor.document;
+
 		  //le dernier position dans le fichier active
 		  const lastLine = document.lineAt(document.lineCount - 1);
 		  const endPosition = new vscode.Position(lastLine.lineNumber, lastLine.text.length);
@@ -35,9 +36,11 @@ function activate(context) {
     	    const content = document.getText();
 			
 
-			const commentRegex = /\/\/(.*)|\/\*([\s\S]*?)\*\/|#(.*)/g;
+			const commentRegex = /\/\/(.*)|\/\*([\s\S]*?)\*\/|#(.*)/g;// regex pour extraire les commantaire dans les language javascript, python and java ...
+
   			const comments = [];
 
+			//en charge dans la liste comments touts les commentaire existant
   			for (let i = 0; i < document.lineCount; i++) {
   			  const line = document.lineAt(i).text;
   			  let match;
@@ -47,17 +50,16 @@ function activate(context) {
   			    comments.push(comment.trim());
   			  }
   			}
-			console.log(comments);
 
 
     	    if (comments.length > 0) {
-				console.log(comments[comments.length-1]);
+				console.log(comments[comments.length-1]);// prend la dirniere commentaire
+
 				let comentaire= comments[comments.length-1]+`avec ${extension} et sans commentaire`
 
 				retrieveAnswer(comentaire).then(rep=>{
 					let answer=extractCodeBlockContent(rep)
 
-					//inserer la réponse dans le fichier
 					editor.edit((editBuilder) => {
 						editBuilder.insert(endPosition, answer);
 					}).then(() => {
@@ -95,12 +97,12 @@ function activate(context) {
   		const selection = editor.selection;
   		const selectedCode = document.getText(selection);
 
-		
+
 		console.log(selectedCode);
 		retrieveAnswer("comment the following code :" +selectedCode).then(rep=>{
 			let answer=extractCodeBlockContent(rep)
 
-			//inserer la réponse dans le fichier
+			//remplacer l'ancient code avec la nouvelle code commenter
 			editor.edit((editBuilder) => {
 				editBuilder.replace(selection, answer);
 			}).then(() => {
@@ -128,13 +130,12 @@ function activate(context) {
     	  vscode.window.showInformationMessage('Aucun fichier ouvert.');
     	  return;
     	}
+		//path de fichier
 		const filePath = editor.document.fileName;
-		const extension = path.extname(filePath).slice(1);
 
 		//extraire le nom de fichier
 		const pathe = editor.document.fileName;
 		const activeFileName = path.basename(pathe);
-		console.log(activeFileName);
 
 		//le texte selectionner
 		const selection = editor.selection;
@@ -144,13 +145,13 @@ function activate(context) {
     	}
 		const selectedCode = editor.document.getText(selection);
 
-		//nom de fichier avect test-*
+		//nom de fichier de test est de la forme suivant (test-*)
 		const newFilePath = path.join(path.dirname(pathe), `Test-${activeFileName}`);
 		const newFileUri = vscode.Uri.file(newFilePath);
 
 		retrieveAnswer("write a unit test for this code :" +selectedCode).then(rep=>{
 			let answer=extractCodeBlockContent(rep)
-			fs.appendFile(newFileUri.fsPath, answer, (err) => {
+			fs.appendFile(newFileUri.fsPath, answer, (err) => {//inserer dans le fichier et crée le fichier s'il n'existe pas
 				if (err) {
 				  vscode.window.showErrorMessage('Une erreur sur la generation des test unitaire');
 				  console.error(err);
@@ -172,17 +173,6 @@ function activate(context) {
 		// 	}
 		// 	vscode.window.showInformationMessage(`Code inséré dans ${newFileName}`);
 		// });
-
-
-
-
-
-
-
-
-
-
-
 
 	});
 	context.subscriptions.push(disposable2);
