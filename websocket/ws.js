@@ -54,6 +54,5 @@ function runServer() {
     });
   });
 }
-
-runServer();
+module.exports={runServer}
 

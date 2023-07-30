@@ -6,6 +6,8 @@ const {retrieveAnswer}=require('./gencode/genfonction')
 const {extractCodeBlockContent}=require('./gencode/extractcode')
 const path = require('path');
 const fs = require('fs');
+
+const {runServer}=require('./websocket/ws')
 //api chatgpt configuratonio
 
 
@@ -13,9 +15,9 @@ const fs = require('fs');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+	runServer()
 
-
-	//1er commande
+	//1er commande generer un code
 	let disposable = vscode.commands.registerCommand('code-gen.gencode', function () {
 		const editor = vscode.window.activeTextEditor;
 
@@ -79,7 +81,7 @@ function activate(context) {
 
 	context.subscriptions.push(disposable);
 
-
+	//2eme command commenter un code
 	let disposable1 = vscode.commands.registerCommand('code-gen.comment', () => {
 		let editor = vscode.window.activeTextEditor;
 
@@ -88,9 +90,12 @@ function activate(context) {
 			return;
 		}
 
+		//extraire le code selectioner
 		const document = editor.document;
   		const selection = editor.selection;
   		const selectedCode = document.getText(selection);
+
+		
 		console.log(selectedCode);
 		retrieveAnswer("comment the following code :" +selectedCode).then(rep=>{
 			let answer=extractCodeBlockContent(rep)
@@ -114,7 +119,7 @@ function activate(context) {
 	context.subscriptions.push(disposable1);
 
 
-	//unit Test
+	//3eme command ecrire des test unitaire
 	let disposable2 = vscode.commands.registerCommand('code-gen.unitTest', () => {
 		const editor = vscode.window.activeTextEditor;
 
