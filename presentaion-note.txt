@@ -22,3 +22,23 @@ Facilité d'utilisation : L'interface intuitive de votre extension rend son util
     // }).catch(e=>{
     // 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
     // })
+
+
+
+		
+		
+    // retrieveAnswer("write a unit test for this code :" +selectedCode).then(rep=>{
+		// 	let answer=extractCodeBlockContent(rep)
+			// fs.appendFile(newFileUri.fsPath, answer, (err) => {//inserer dans le fichier et crée le fichier s'il n'existe pas
+			// 	if (err) {
+			// 	  vscode.window.showErrorMessage('Une erreur sur la generation des test unitaire');
+			// 	  console.error(err);
+			// 	  return;
+			// 	}
+			// 	vscode.window.showInformationMessage(`les test sont inséré dans ${newFileName}`);
+			// });
+
+
+		// }).catch(e=>{
+		// 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
+		// })

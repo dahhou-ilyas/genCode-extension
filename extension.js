@@ -55,18 +55,6 @@ function activate(context) {
 				let comentaire= comments[comments.length-1]+` :donné directement le code et avec ${extension}`
 
 				console.log(comentaire);
-				// retrieveAnswer(comentaire).then(rep=>{
-				// 	let answer=extractCodeBlockContent(rep)
-
-				// 	editor.edit((editBuilder) => {
-				// 		editBuilder.insert(endPosition, answer);
-				// 	}).then(() => {
-				// 		vscode.window.showInformationMessage('Texte genérer avec succès !');
-				// 	});
-
-				// }).catch(e=>{
-				// 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
-				// })
 				api(comentaire).then(rep=>{
 						let answer=extractCodeBlockContent(rep)
 						console.log(answer);
@@ -106,20 +94,6 @@ function activate(context) {
 		const document = editor.document;
   		const selection = editor.selection;
   		const selectedCode = document.getText(selection);
-
-		// retrieveAnswer("comment the following code :" +selectedCode).then(rep=>{
-		// 	let answer=extractCodeBlockContent(rep)
-
-		// 	//remplacer l'ancient code avec la nouvelle code commenter
-		// 	editor.edit((editBuilder) => {
-		// 		editBuilder.replace(selection, answer);
-		// 	}).then(() => {
-		// 		vscode.window.showInformationMessage('Texte commenter avec succès !');
-		// 	});
-
-		// }).catch(e=>{
-		// 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
-		// })
 		api(`write this ${selectedCode} code with comments`).then(rep=>{
 
 			editor.edit((editBuilder) => {
@@ -168,8 +142,16 @@ function activate(context) {
 		const newFilePath = path.join(path.dirname(pathe), `Test-${activeFileName}`);
 		const newFileUri = vscode.Uri.file(newFilePath);
 
-		api("write a unit test for this code:\n" +selectedCode+" ,and import the necessary modules").then(rep=>{
-			
+		const filp = editor.document.fileName;
+		const extension = path.extname(filp).slice(1);
+		let js=""
+		if(extension=="js"){
+			js="with the assertion module built into Node.js "
+		}
+		console.log(js);
+		api("write a unit test for this code:\n" +selectedCode+" ,and import the necessary modules"+` ${js}`).then(rep=>{
+			// let answer=extractCodeBlockContent(rep)
+			// console.log(answer);
 			fs.appendFile(newFileUri.fsPath,rep, (err) => {//inserer dans le fichier et crée le fichier s'il n'existe pas
 				if (err) {
 				  vscode.window.showErrorMessage('Une erreur sur la generation des test unitaire');
@@ -182,22 +164,6 @@ function activate(context) {
 		}).catch(e=>{
 			vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
 		})
-
-		// retrieveAnswer("write a unit test for this code :" +selectedCode).then(rep=>{
-		// 	let answer=extractCodeBlockContent(rep)
-			// fs.appendFile(newFileUri.fsPath, answer, (err) => {//inserer dans le fichier et crée le fichier s'il n'existe pas
-			// 	if (err) {
-			// 	  vscode.window.showErrorMessage('Une erreur sur la generation des test unitaire');
-			// 	  console.error(err);
-			// 	  return;
-			// 	}
-			// 	vscode.window.showInformationMessage(`les test sont inséré dans ${newFileName}`);
-			// });
-
-
-		// }).catch(e=>{
-		// 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
-		// })
 		
 
 	});
