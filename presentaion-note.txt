@@ -1,0 +1,24 @@
+Slide 5: Avantages clés
+
+Expliquez les avantages clés de votre extension par rapport aux autres solutions :
+
+Efficacité accrue : Votre extension permet d'économiser du temps en automatisant la création de code à partir de commentaires et en ajoutant rapidement des commentaires à du code existant.
+
+Productivité améliorée : Les développeurs peuvent se concentrer davantage sur la logique métier plutôt que sur la rédaction de code fastidieuse.
+
+Facilité d'utilisation : L'interface intuitive de votre extension rend son utilisation simple et accessible, même pour les nouveaux utilisateurs.
+
+
+
+// retrieveAnswer(comentaire).then(rep=>{
+    // 	let answer=extractCodeBlockContent(rep)
+
+    // 	editor.edit((editBuilder) => {
+    // 		editBuilder.insert(endPosition, answer);
+    // 	}).then(() => {
+    // 		vscode.window.showInformationMessage('Texte genérer avec succès !');
+    // 	});
+
+    // }).catch(e=>{
+    // 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
+    // })

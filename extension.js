@@ -1,13 +1,12 @@
 
 const vscode = require('vscode');
 const { privateEncrypt } = require('crypto');
-const axios = require('axios');
+
 const {retrieveAnswer}=require('./gencode/genfonction')
 const {extractCodeBlockContent}=require('./gencode/extractcode')
 const path = require('path');
 const fs = require('fs');
-
-const {runServer}=require('./websocket/ws')
+const {api}=require('./gencode/apigpt')
 //api chatgpt configuratonio
 
 
@@ -15,7 +14,6 @@ const {runServer}=require('./websocket/ws')
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-	runServer()
 
 	//1er commande generer un code
 	let disposable = vscode.commands.registerCommand('code-gen.gencode', function () {
@@ -24,17 +22,16 @@ function activate(context) {
     	if (editor) {
     	  const document = editor.document;
 
-		  //le dernier position dans le fichier active
-		  const lastLine = document.lineAt(document.lineCount - 1);
-		  const endPosition = new vscode.Position(lastLine.lineNumber, lastLine.text.length);
+		  const position = editor.selection.active;
+		  console.log(`Cursor position: Line ${position.line + 1}, Column ${position.character + 1}`);
+		  // la position de curseur
+		  const endPosition = new vscode.Position(position.line + 2, 1);
 
 		  //extraire extension de fichier
 		  const filePath = document.fileName;
 		  const extension = path.extname(filePath).slice(1);
 
     	  try {
-    	    const content = document.getText();
-			
 
 			const commentRegex = /\/\/(.*)|\/\*([\s\S]*?)\*\/|#(.*)/g;// regex pour extraire les commantaire dans les language javascript, python and java ...
 
@@ -53,22 +50,35 @@ function activate(context) {
 
 
     	    if (comments.length > 0) {
-				console.log(comments[comments.length-1]);// prend la dirniere commentaire
+				// prend la dirniere commentaire
 
-				let comentaire= comments[comments.length-1]+`avec ${extension} et sans commentaire`
+				let comentaire= comments[comments.length-1]+` :donné directement le code et avec ${extension}`
 
-				retrieveAnswer(comentaire).then(rep=>{
-					let answer=extractCodeBlockContent(rep)
+				console.log(comentaire);
+				// retrieveAnswer(comentaire).then(rep=>{
+				// 	let answer=extractCodeBlockContent(rep)
 
-					editor.edit((editBuilder) => {
-						editBuilder.insert(endPosition, answer);
-					}).then(() => {
-						vscode.window.showInformationMessage('Texte genérer avec succès !');
-					});
+				// 	editor.edit((editBuilder) => {
+				// 		editBuilder.insert(endPosition, answer);
+				// 	}).then(() => {
+				// 		vscode.window.showInformationMessage('Texte genérer avec succès !');
+				// 	});
 
-				}).catch(e=>{
-					vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
-				})
+				// }).catch(e=>{
+				// 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
+				// })
+				api(comentaire).then(rep=>{
+						let answer=extractCodeBlockContent(rep)
+						console.log(answer);
+						editor.edit((editBuilder) => {
+							editBuilder.insert(endPosition, answer);
+						}).then(() => {
+							vscode.window.showInformationMessage('Texte genérer avec succès !');
+						});
+	
+					}).catch(e=>{
+						vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
+					})
 
 
     	    } else {
@@ -97,16 +107,25 @@ function activate(context) {
   		const selection = editor.selection;
   		const selectedCode = document.getText(selection);
 
+		// retrieveAnswer("comment the following code :" +selectedCode).then(rep=>{
+		// 	let answer=extractCodeBlockContent(rep)
 
-		console.log(selectedCode);
-		retrieveAnswer("comment the following code :" +selectedCode).then(rep=>{
-			let answer=extractCodeBlockContent(rep)
+		// 	//remplacer l'ancient code avec la nouvelle code commenter
+		// 	editor.edit((editBuilder) => {
+		// 		editBuilder.replace(selection, answer);
+		// 	}).then(() => {
+		// 		vscode.window.showInformationMessage('Texte commenter avec succès !');
+		// 	});
 
-			//remplacer l'ancient code avec la nouvelle code commenter
+		// }).catch(e=>{
+		// 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
+		// })
+		api(`write this ${selectedCode} code with comments`).then(rep=>{
+
 			editor.edit((editBuilder) => {
-				editBuilder.replace(selection, answer);
+				editBuilder.replace(selection, rep);
 			}).then(() => {
-				vscode.window.showInformationMessage('Texte commenter avec succès !');
+				vscode.window.showInformationMessage('Texte genérer avec succès !');
 			});
 
 		}).catch(e=>{
@@ -144,14 +163,14 @@ function activate(context) {
     	  return;
     	}
 		const selectedCode = editor.document.getText(selection);
-
+		
 		//nom de fichier de test est de la forme suivant (test-*)
 		const newFilePath = path.join(path.dirname(pathe), `Test-${activeFileName}`);
 		const newFileUri = vscode.Uri.file(newFilePath);
 
-		retrieveAnswer("write a unit test for this code :" +selectedCode).then(rep=>{
-			let answer=extractCodeBlockContent(rep)
-			fs.appendFile(newFileUri.fsPath, answer, (err) => {//inserer dans le fichier et crée le fichier s'il n'existe pas
+		api("write a unit test for this code:\n" +selectedCode+" ,and import the necessary modules").then(rep=>{
+			
+			fs.appendFile(newFileUri.fsPath,rep, (err) => {//inserer dans le fichier et crée le fichier s'il n'existe pas
 				if (err) {
 				  vscode.window.showErrorMessage('Une erreur sur la generation des test unitaire');
 				  console.error(err);
@@ -160,19 +179,26 @@ function activate(context) {
 				vscode.window.showInformationMessage(`les test sont inséré dans ${newFileName}`);
 			});
 
-
 		}).catch(e=>{
 			vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
 		})
 
-		// fs.appendFile(newFileUri.fsPath, selectedCode, (err) => {
-		// 	if (err) {
-		// 	  vscode.window.showErrorMessage('Une erreur est survenue lors de l\'insertion du code.');
-		// 	  console.error(err);
-		// 	  return;
-		// 	}
-		// 	vscode.window.showInformationMessage(`Code inséré dans ${newFileName}`);
-		// });
+		// retrieveAnswer("write a unit test for this code :" +selectedCode).then(rep=>{
+		// 	let answer=extractCodeBlockContent(rep)
+			// fs.appendFile(newFileUri.fsPath, answer, (err) => {//inserer dans le fichier et crée le fichier s'il n'existe pas
+			// 	if (err) {
+			// 	  vscode.window.showErrorMessage('Une erreur sur la generation des test unitaire');
+			// 	  console.error(err);
+			// 	  return;
+			// 	}
+			// 	vscode.window.showInformationMessage(`les test sont inséré dans ${newFileName}`);
+			// });
+
+
+		// }).catch(e=>{
+		// 	vscode.window.showInformationMessage(`il y a une erreur avec gpt :`);
+		// })
+		
 
 	});
 	context.subscriptions.push(disposable2);
