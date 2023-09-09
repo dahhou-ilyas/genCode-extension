@@ -23,6 +23,9 @@
       },{
         "command": "code-gen.unitTest",
         "title": "unitTest"
+      },{
+        "command": "code-gen.refactorer",
+        "title": "refactorer"
       }
     ]
   },

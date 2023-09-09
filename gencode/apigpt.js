@@ -13,15 +13,11 @@ async function api(content){
 	const response= await axios.post('https://api.openai.com/v1/chat/completions', promptMessage, {
 	  headers: {
 		'Content-Type': 'application/json',
-		'Authorization': `Bearer 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`
+		'Authorization': `Bearer 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`
 	  }
 	})
 	return response.data.choices[0].message.content
 }
-
-// api("ecrire un code qui calcule la somme").then(rep=>{
-// 	console.log(extractCodeBlockContent(rep));
-// })
 module.exports={api}
 
 

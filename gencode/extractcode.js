@@ -5,7 +5,7 @@ function extractCodeBlockContent(markdownText) {
       const codeBlockContent = matches[1];
       return codeBlockContent.trim();
     }
-    return null;
+    return markdownText;
 }
 
 module.exports={extractCodeBlockContent}
