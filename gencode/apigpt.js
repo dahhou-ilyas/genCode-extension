@@ -1,5 +1,6 @@
 
 const axios = require('axios');
+require('dotenv').config()
 
 async function api(content){
 	const promptMessage = {
@@ -13,11 +14,13 @@ async function api(content){
 	const response= await axios.post('https://api.openai.com/v1/chat/completions', promptMessage, {
 	  headers: {
 		'Content-Type': 'application/json',
-		'Authorization': `Bearer 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`
+		'Authorization': `Bearer ${process.env.API_KEY}`
 	  }
 	})
 	return response.data.choices[0].message.content
 }
+
+console.log(process.env);
 module.exports={api}
 
 
